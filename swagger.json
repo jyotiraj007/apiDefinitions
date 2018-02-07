@@ -1,0 +1,147 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This API serves as the initial step to start and manage the data creation process.",
+    "version": "2018-01-17T16:14:57Z",
+    "title": "Signed S3 Url"
+  },
+  "host": "c8ucvnfn00.execute-api.us-east-1.amazonaws.com",
+  "basePath": "/staging",
+  "schemes": [
+    "https"
+  ],
+  "paths": {
+    "/signed-url/{appid}": {
+      "get": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "appid",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "schema": {
+              "$ref": "#/definitions/Empty"
+            }
+          },
+          "403": {
+            "description": "403 response"
+          },
+          "500": {
+            "description": "500 response"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            },
+            ".*\"errorMessage\".*": {
+              "statusCode": "500",
+              "responseTemplates": {
+                "application/json": "$input.path('$.errorMessage')"
+              }
+            },
+            ".*\"Missing\".*": {
+              "statusCode": "403",
+              "responseTemplates": {
+                "application/json": "#set ($errorMessageObj = $util.parseJson($input.path('$.errorMessage)))\n{\n  \"message\" : \"Requested resource not accessible\"\n}"
+              }
+            }
+          },
+          "requestTemplates": {
+            "application/json": "{\n  \"params\": {\n    \"path\": {\n      \"appid\": \"$input.params('appid')\"\n    }\n  }\n}"
+          },
+          "uri": "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:245600657943:function:getS3SignedUrl/invocations",
+          "passthroughBehavior": "when_no_templates",
+          "httpMethod": "POST",
+          "contentHandling": "CONVERT_TO_TEXT",
+          "type": "aws"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Empty": {
+      "type": "object",
+      "title": "Empty Schema"
+    }
+  },
+  "x-amazon-apigateway-documentation": {
+    "version": "1",
+    "createdDate": "2018-02-07T10:57:57Z",
+    "documentationParts": [
+      {
+        "location": {
+          "type": "API"
+        },
+        "properties": {
+          "info": {
+            "description": "This API serves as the initial step to start and manage the data creation process."
+          }
+        }
+      },
+      {
+        "location": {
+          "type": "METHOD",
+          "path": "/signedurl/{appid}",
+          "method": "GET"
+        },
+        "properties": {
+          "description": "\"API to get following for a given appId:\n                   1. statusCode.\n                   2. signedUrl where user could upload fontInfo.json file.\n                   3. jobId.\n                   4. snsTopic that user subscribes to get the completion/error notification.\""
+        }
+      },
+      {
+        "location": {
+          "type": "RESPONSE",
+          "path": "/signedurl/{appid}",
+          "method": "GET",
+          "statusCode": "200"
+        },
+        "properties": {
+          "description": "If request is successfull"
+        }
+      },
+      {
+        "location": {
+          "type": "RESPONSE",
+          "path": "/signedurl/{appid}",
+          "method": "GET",
+          "statusCode": "404"
+        },
+        "properties": {
+          "description": "In case of unknow resource requested."
+        }
+      },
+      {
+        "location": {
+          "type": "RESPONSE",
+          "path": "/signedurl/{appid}",
+          "method": "GET",
+          "statusCode": "500"
+        },
+        "properties": {
+          "description": "This occurs when some error comes inside lambda code"
+        }
+      }
+    ]
+  },
+  "x-amazon-apigateway-gateway-responses": {
+    "MISSING_AUTHENTICATION_TOKEN": {
+      "statusCode": 404,
+      "responseTemplates": {
+        "application/json": "{\"message\":\"Resource not available\"}"
+      }
+    }
+  }
+}
